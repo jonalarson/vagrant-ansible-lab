@@ -5,7 +5,7 @@ setup-ssh: ## setup ssh keys
 	bash key_gen.sh
 
 .PHONY: deploy-dhcpsrvr
-deploy-dhcp-srvr: ## provision ansible playbook
+deploy-dhcpsrvr: ## provision ansible playbook
 	ansible-playbook -i ansible_project/inventory /vagrant/dhcpsrvr.yml
 
 .PHONY: run-dhcpclient

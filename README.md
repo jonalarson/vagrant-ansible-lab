@@ -82,12 +82,12 @@ MAC                IP              hostname
 5. Select Linux 2.6 / 3.x / 4.x (64-bit)
 6. Select -> Next -> Create -> Next -> Next -> Create
 
-Next you'll need to configure the VM to boot from the Netboot.iso via the private network created from Vagrantfile.
+Next you'll need to configure the VM to boot from the Netboot.iso 
 
 1. Select the VM from the previous step 
 2. Select _Settings_ -> _Storage_
    1. Select the _CD_ -> Select _Live CD/DVD_
-   2. Select the _CD Icon_ -> Select the _Netboot.xyz ISO file_ from the previous step
+   2. Select the _CD Icon_ -> Select the _Netboot.xyz ISO file_ navigate to the file from the previous step
 3. Select Network
    1. Change Adapter 1 from _NAT_ to _Host-only Adapter_ -> Select _vboxnet1_ -> _Ok_
 4. Start the VM

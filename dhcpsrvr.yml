@@ -9,57 +9,83 @@
       apt:
         name: "*"
         state: latest
-        update_cache: yes     
+        update_cache: yes
+
     - name: Install the isc-dhcp-server package
       apt:
         name: isc-dhcp-server
         state: present
+
     - name: Add the path to dhcpd's config file 
       replace:
         path: /etc/default/isc-dhcp-server
         regexp: '#DHCPDv4_CONF=/etc/dhcp/dhcpd.conf'
-        replace: 'DHCPDv4_CONF=/etc/dhcp/dhcpd.conf'       
+        replace: 'DHCPDv4_CONF=/etc/dhcp/dhcpd.conf'
+
     - name: Add the host-only network interface to the dhcpd's config file
       replace:
         path: /etc/default/isc-dhcp-server
         regexp: 'INTERFACESv4=""'
         replace: 'INTERFACESv4="enp0s8"'
+
     - name: Modify the default domain name to the dhcp server's configuration
       replace:
         path: /etc/dhcp/dhcpd.conf
         regexp: 'option domain-name "example.org";'
         replace: 'option domain-name "mieweb.local";'
+
     - name: Modify the default dns servers to the dhcp server's configuration
       replace: 
         path: /etc/dhcp/dhcpd.conf
         regexp: 'option domain-name-servers ns1.example.org, ns2.example.org;'
         replace: 'option domain-name-servers 8.8.8.8, 8.8.4.4;'
+
     - name: Add a dhcp scope to the dhcp server's configuraiton
-      lineinfile:
-        dest: /etc/dhcp/dhcpd.conf
-        line: 'subnet 192.168.56.0 netmask 255.255.255.0 {range 192.168.56.10 192.168.56.200; option routers 192.168.59.4;}'
+      blockinfile:
+        path: /etc/dhcp/dhcpd.conf
+        block: | 
+          # DHCP Range
+          subnet 192.168.56.0 netmask 255.255.255.0 {
+            range 192.168.56.10 192.168.56.200;
+            option routers 192.168.56.4;
+          }
+        insertbefore: '# The ddns-updates-style parameter controls whether or not the server will'
+
     - name: Start the isc-dhcp-server with systemd
       systemd:
         name: isc-dhcp-server
-        state: started
+        state: restarted
         enabled: yes
-        daemon-reload: yes
     
     # Install and configure a NAT Server
-    - name: Install iptables firewall package
-      apt:
-        name: iptables-persistent
-        state: present
     - name: Enable IPv4 packet forwarding
       sysctl:
         name: net.ipv4.ip_forward
         value: 1
         state: present
-        sysctl_set: yes    
-    - name: Configure NAT firewall rules
-      shell: 'iptables -A FORWARD --in-interface enp0s8 -j ACCEPT;iptables --table nat -A POSTROUTING --out-interface enp0s3 -j MASQUERADE' 
-      become: true
-    - name: save iptables
-      shell: "iptables-save > /etc/iptables/rules.v4"
-      become: true
-      changed_when: false
+        sysctl_set: yes
+
+    - name: Install ufw firewall package
+      apt:
+        name: ufw
+        state: present
+
+    - name: Modify /etc/default/ufw to accept ip forwarding
+      replace: 
+        path: /etc/default/ufw
+        regexp: 'DEFAULT_FORWARD_POLICY="DROP"'
+        replace: 'DEFAULT_FORWARD_POLICY="ACCEPT"'
+
+    - name: Modify /etc/ufw/before.rules to include NAT rules
+      blockinfile:
+        path: /etc/ufw/before.rules
+        block: |
+          # NAT table rules
+          *nat
+          :POSTROUTING ACCEPT [0:0]
+          -A POSTROUTING -s 192.168.56.0/24 -o enp0s3 -j MASQUERADE
+          COMMIT
+        insertbefore: "^# Don't delete these required lines"
+
+    - name: Restart ufw
+      shell: ufw disable;echo "y" | sudo ufw enable;ufw allow 22/tcp
