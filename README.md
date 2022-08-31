@@ -9,7 +9,7 @@ Requirements:
 - Provisioning needs to be automated
 - The DHCP client needs to leverage [Netboot.xyz](https://netboot.xyz/) via a private network
 
-Prerequisites: (This solution was tested on Debian 11)
+Prerequisites: (This solution was tested on Ubuntu 20.04.4 LTS)
 - Internet Connection
 - Hardware: VT-x/AMD-V support needs to be enabled in BIOS
 - [Vagrant](https://learn.hashicorp.com/tutorials/vagrant/getting-started-index)
