@@ -11,4 +11,4 @@ deploy-dhcpsrvr: ## provision ansible playbook
 .PHONY: run-dhcpclient
 run-dhcpclient: ## run a dhcp release/renew dhcpclient
 	ansible -i ansible_project/inventory dhcpclient -a "sudo dhclient enp0s8"
-	ansible -i ansible_project/inventory dhcpsrvr -a "dhcp-lease-list"
+	ansible -i ansible_project/inventory dhcpsrvr -a "cat /var/lib/misc/dnsmasq.leases"

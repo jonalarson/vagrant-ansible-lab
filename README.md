@@ -70,24 +70,26 @@ MAC                IP              hostname
 08:00:27:72:1a:ba  192.168.56.10   dhcpclient     
 ```
 
-## Create a new VM to boot Netboot.xyz
+## Create a new VM to boot PXE boot the Netboot.xyz distro
 ---
 
-1. Download a [Netboot.xyz ISO](https://boot.netboot.xyz/ipxe/netboot.xyz.iso)
-2. Launch VirtualBox
-3. Add a new virtual machine
-   1. Name: Netboot.xyz
-   2. Type: Linux
-4. Select "Install from disc or image"
-5. Select Linux 2.6 / 3.x / 4.x (64-bit)
-6. Select -> Next -> Create -> Next -> Next -> Create
+1. Launch VirtualBox
+2. Add a new virtual machine
+   - Name: _Netboot.xyz_
+   - Type: _Linux_
+   - Version: _Linux 2.6 / 3.x / 4.x (64-bit)_
+3. Configure the virtual machine hardware
+   - Memory: _512_
+   - Hard Disk: _Do not add a virtal hard disk_
+4. Select the _Netboot.xyz_ and select _Settings_
+   - Select _System_ 
+      - Uncheck: Floppy
+      - Uncheck: Optical
+      - Uncheck: Hard Disk
+      - Select: Network
+   - Select _Network_
+      - Change Adapter 1 from _NAT_ to _Host-only Adapter_
+         - Name: Select _vboxnet1_
+5. Start the virtual machine and follow the _Netboot.xyz_ prompts
 
 Next you'll need to configure the VM to boot from the Netboot.iso 
-
-1. Select the VM from the previous step 
-2. Select _Settings_ -> _Storage_
-   1. Select the _CD_ -> Select _Live CD/DVD_
-   2. Select the _CD Icon_ -> Select the _Netboot.xyz ISO file_ navigate to the file from the previous step
-3. Select Network
-   1. Change Adapter 1 from _NAT_ to _Host-only Adapter_ -> Select _vboxnet1_ -> _Ok_
-4. Start the VM

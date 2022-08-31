@@ -7,7 +7,7 @@
      dhcp_server: 192.168.56.4
      dhcp_subnet: 192.168.56.0
      dhcp_netmask: 255.255.255.0
-     dhcp_subnet_range: '192.168.56.10 192.168.56.200'
+     dhcp_subnet_range: '192.168.56.10,192.168.56.200'
      dhcp_router1: 192.168.56.4
      domain_name: mieweb.local
      domain_name_server1: 8.8.8.8
@@ -15,59 +15,58 @@
    become: true
 
    tasks:
-    # Install and configure a DHCP Server     
-    - name: Update apt cache and upgrade all packages
-      register: updatesys
-      apt:
-        name: "*"
-        state: latest
-        update_cache: yes
-
-    - name: Install the isc-dhcp-server package
-      apt:
-        name: isc-dhcp-server
-        state: present
-
-    - name: Add the path to dhcpd's config file 
-      replace:
-        path: /etc/default/isc-dhcp-server
-        regexp: '#DHCPDv4_CONF=/etc/dhcp/dhcpd.conf'
-        replace: 'DHCPDv4_CONF=/etc/dhcp/dhcpd.conf'
-
-    - name: Add the host-only network interface to the dhcpd's config file
-      replace:
-        path: /etc/default/isc-dhcp-server
-        regexp: 'INTERFACESv4=""'
-        replace: 'INTERFACESv4={{ private_net }}'
-
-    - name: Modify the default domain name to the dhcp server's configuration
-      replace:
-        path: /etc/dhcp/dhcpd.conf
-        regexp: 'option domain-name "example.org";'
-        replace: 'option domain-name "{{ domain_name }}";'
-
-    - name: Modify the default dns servers to the dhcp server's configuration
-      replace: 
-        path: /etc/dhcp/dhcpd.conf
-        regexp: 'option domain-name-servers ns1.example.org, ns2.example.org;'
-        replace: 'option domain-name-servers {{ domain_name_server1 }}, {{ domain_name_server2 }};'
-
-    - name: Add a dhcp scope to the dhcp server's configuraiton
-      blockinfile:
-        path: /etc/dhcp/dhcpd.conf
-        block: | 
-          # DHCP Range
-          subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
-            range {{ dhcp_subnet_range }};
-            option routers {{ dhcp_router1 }};
-          }
-        insertbefore: '# The ddns-updates-style parameter controls whether or not the server will'
-
-    - name: Start the isc-dhcp-server with systemd
+    # DHCP Server    
+    - name: Stop systemd-resolved
       systemd:
-        name: isc-dhcp-server
+        name: systemd-resolved
+        enabled: false
+        state: stopped
+      
+    - name: Remove /etc/resolv.conf
+      shell: 'rm -v /etc/resolv.conf'
+    
+    - name: Create /etc/resolv.conf
+      copy:
+        dest: "/etc/resolv.conf"
+        content: |
+          nameserver {{ domain_name_server1 }}
+          nameserver {{ domain_name_server2 }}
+
+    - name: Install dnsmasq
+      apt:
+        name: dnsmasq
+        state: present
+    
+    - name: Create tftp directory
+      file:
+        path: /var/lib/tftp
+        state: directory
+    
+    - name: Download Netboot.xyz pxe image
+      get_url:
+        url: https://boot.netboot.xyz/ipxe/netboot.xyz.kpxe
+        dest: /var/lib/tftp 
+
+    - name: Modify /etc/dnsmasq.conf
+      blockinfile:
+        path: /etc/dnsmasq.conf
+        block: |
+          port=53
+          domain={{ domain_name }}
+          interface={{ private_net }}
+          dhcp-range={{ dhcp_subnet_range }},{{ dhcp_netmask }},24h
+          dhcp-option=option:router,{{ dhcp_router1 }}
+          dhcp-option=option:dns-server,{{ dhcp_server }}
+          dhcp-option=66,0.0.0.0
+          enable-tftp
+          tftp-root=/var/lib/tftp
+        insertbefore: BOF 
+
+    - name: Start dnsmasq
+      systemd:
+        name: dnsmasq
+        enabled: true
         state: restarted
-        enabled: yes
     
     # Install and configure a NAT Server
     - name: Enable IPv4 packet forwarding
@@ -100,4 +99,4 @@
         insertbefore: "^# Don't delete these required lines"
 
     - name: Restart ufw
-      shell: ufw disable;echo "y" | sudo ufw enable;ufw allow 22/tcp
+      shell: ufw disable;echo "y" | sudo ufw enable;ufw allow in on {{ private_net }}
