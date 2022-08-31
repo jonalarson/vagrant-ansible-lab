@@ -1,7 +1,19 @@
 ---
  - name: Install a DHCP & NAT Server on Debian/Ubuntu
    hosts: dhcpsrvrs
+     vars:
+       public_net: enp0s3
+       private_net: enp0s8
+       dhcp_server: 192.168.56.4
+       dhcp_subnet: 192.168.56.0
+       dhcp_netmask: 255.255.255.0
+       dhcp_subnet_range: '192.168.56.10 192.168.56.200'
+       dhcp_router1: 192.168.56.4
+       domain_name: mieweb.local
+       domain_name_server1: 8.8.8.8
+       domain_name_server2: 8.8.4.4
    become: true
+
    tasks:
     # Install and configure a DHCP Server     
     - name: Update apt cache and upgrade all packages
