@@ -91,5 +91,3 @@ MAC                IP              hostname
       - Change Adapter 1 from _NAT_ to _Host-only Adapter_
          - Name: Select _vboxnet1_
 5. Start the virtual machine and follow the _Netboot.xyz_ prompts
-
-Next you'll need to configure the VM to boot from the Netboot.iso 
