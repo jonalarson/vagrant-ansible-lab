@@ -91,3 +91,12 @@ MAC                IP              hostname
       - Change Adapter 1 from _NAT_ to _Host-only Adapter_
          - Name: Select _vboxnet1_
 5. Start the virtual machine and follow the _Netboot.xyz_ prompts
+
+## Lab Cleanup
+---
+
+To spin down and remove the Vagrant images run the following command from the root of the project:
+
+```bash
+vagrant destroy
+```
