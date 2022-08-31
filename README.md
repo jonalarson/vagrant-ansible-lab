@@ -12,7 +12,7 @@ Requirements:
 Prerequisites: (This solution was tested on Debian 11)
 - Internet Connection
 - Hardware: VT-x/AMD-V support needs to be enabled in BIOS
-- [Vagrant[](https://learn.hashicorp.com/tutorials/vagrant/getting-started-index)
+- [Vagrant](https://learn.hashicorp.com/tutorials/vagrant/getting-started-index)
 - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 - Terminal
 
