@@ -1,17 +1,17 @@
 ---
  - name: Install a DHCP & NAT Server on Debian/Ubuntu
    hosts: dhcpsrvrs
-     vars:
-       public_net: enp0s3
-       private_net: enp0s8
-       dhcp_server: 192.168.56.4
-       dhcp_subnet: 192.168.56.0
-       dhcp_netmask: 255.255.255.0
-       dhcp_subnet_range: '192.168.56.10 192.168.56.200'
-       dhcp_router1: 192.168.56.4
-       domain_name: mieweb.local
-       domain_name_server1: 8.8.8.8
-       domain_name_server2: 8.8.4.4
+   vars:
+     public_net: enp0s3
+     private_net: enp0s8
+     dhcp_server: 192.168.56.4
+     dhcp_subnet: 192.168.56.0
+     dhcp_netmask: 255.255.255.0
+     dhcp_subnet_range: '192.168.56.10 192.168.56.200'
+     dhcp_router1: 192.168.56.4
+     domain_name: mieweb.local
+     domain_name_server1: 8.8.8.8
+     domain_name_server2: 8.8.4.4
    become: true
 
    tasks:
@@ -38,28 +38,28 @@
       replace:
         path: /etc/default/isc-dhcp-server
         regexp: 'INTERFACESv4=""'
-        replace: 'INTERFACESv4="enp0s8"'
+        replace: 'INTERFACESv4={{ private_net }}'
 
     - name: Modify the default domain name to the dhcp server's configuration
       replace:
         path: /etc/dhcp/dhcpd.conf
         regexp: 'option domain-name "example.org";'
-        replace: 'option domain-name "mieweb.local";'
+        replace: 'option domain-name "{{ domain_name }}";'
 
     - name: Modify the default dns servers to the dhcp server's configuration
       replace: 
         path: /etc/dhcp/dhcpd.conf
         regexp: 'option domain-name-servers ns1.example.org, ns2.example.org;'
-        replace: 'option domain-name-servers 8.8.8.8, 8.8.4.4;'
+        replace: 'option domain-name-servers {{ domain_name_server1 }}, {{ domain_name_server2 }};'
 
     - name: Add a dhcp scope to the dhcp server's configuraiton
       blockinfile:
         path: /etc/dhcp/dhcpd.conf
         block: | 
           # DHCP Range
-          subnet 192.168.56.0 netmask 255.255.255.0 {
-            range 192.168.56.10 192.168.56.200;
-            option routers 192.168.56.4;
+          subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
+            range {{ dhcp_subnet_range }};
+            option routers {{ dhcp_router1 }};
           }
         insertbefore: '# The ddns-updates-style parameter controls whether or not the server will'
 
@@ -95,7 +95,7 @@
           # NAT table rules
           *nat
           :POSTROUTING ACCEPT [0:0]
-          -A POSTROUTING -s 192.168.56.0/24 -o enp0s3 -j MASQUERADE
+          -A POSTROUTING -s {{ dhcp_subnet }}/24 -o {{ public_net }} -j MASQUERADE
           COMMIT
         insertbefore: "^# Don't delete these required lines"
 
