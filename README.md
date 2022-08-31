@@ -56,7 +56,7 @@ make setup-ssh
 make deploy-dhcp-srvr
 ```
 
-Release and renew the DHCP on the dhcp client
+To verify the DHCP is working run the command below to release/renew DHCP on the dhcpclient
 
 ```bash
 make run-dhcpclient
