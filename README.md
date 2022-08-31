@@ -70,7 +70,7 @@ MAC                IP              hostname
 08:00:27:72:1a:ba  192.168.56.10   dhcpclient     
 ```
 
-## Create a new VM to boot PXE boot the Netboot.xyz distro
+## Create a new VM to PXE boot the Netboot.xyz distro from the DNS/DHCP/TFTP
 ---
 
 1. Launch VirtualBox
